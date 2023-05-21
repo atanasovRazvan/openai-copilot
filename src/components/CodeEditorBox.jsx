@@ -1,12 +1,14 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import {Button} from "@mui/material";
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 
 const CodeEditorBox = ({ setGptQuery }) => {
 
     const [code, setCode] = useState('// Seek suggestions by starting a comment with "$" and then write your prompt (give it aa few seconds)\n\n// Write your code below\n');
     const [openAIQuery, setOpenAIQuery] = useState('');
     const isInitialMount = useRef(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [result, setResult] = useState("");
 
     useEffect(() => {
         let timeout;
@@ -22,7 +24,8 @@ const CodeEditorBox = ({ setGptQuery }) => {
     },[openAIQuery])
 
     const handleClick = () => {
-        eval(code);
+        setResult(eval(code));
+        setIsModalOpen(true);
     }
 
     const handleChange = async (event) => {
@@ -50,6 +53,24 @@ const CodeEditorBox = ({ setGptQuery }) => {
                 }}
             />
             <Button style={{height: "4vh", position: "relative", right: "calc(36.72px - 50%)"}} onClick={handleClick}>Run</Button>
+            <Dialog
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Your script ran without errors
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Result: {result}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsModalOpen(false)} autoFocus>
+                        OK
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 }

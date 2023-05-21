@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import { CircularProgress } from "@mui/material";
-import { Configuration, OpenAIApi } from "openai";
+import fetchResponse from "./openaiRequest";
 
 const CodeSuggestionBox = ({ gptQuery }) => {
 
@@ -9,11 +9,6 @@ const CodeSuggestionBox = ({ gptQuery }) => {
     const [isLoading, setIsLoading] = useState(false);
     const headline = useMemo(() => '// Your suggestion will appear here', []);
     const isInitialMount = useRef(true);
-    const api = useMemo(() =>
-        new OpenAIApi(new Configuration({
-            apiKey: process.env.OPENAI_API_KEY
-        }))
-    , []);
 
     useEffect(() => {
         if(isInitialMount.current){
@@ -21,22 +16,11 @@ const CodeSuggestionBox = ({ gptQuery }) => {
         }
         else {
             setIsLoading(true);
-            const completion = api.createCompletion({
-                model: "text-davinci-003",
-                prompt: `${gptQuery}, in JavaScript`,
-                max_tokens: 1000,
-                temperature: 0,
-                top_p: 1,
-                n: 1,
-                stream: false,
-                logprobs: null,
-            });
-            completion.then((res) => {
-                console.log(res.data);
-                console.log(res.data.choices[0]);
-                setCode(res.data.choices[0].text);
-            })
-                .finally(() => setIsLoading(false))
+            fetchResponse("https://api.openai.com/v1/completions", process.env.OPENAI_API_KEY, gptQuery)
+                .then((data) => {
+                    setCode(data.choices[0].text);
+                })
+                .finally(() => setIsLoading(false));
         }
     }, [gptQuery])
 

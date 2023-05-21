@@ -1,6 +1,8 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const webpack = require("webpack");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const deps = require("./package.json").dependencies;
 module.exports = {
@@ -45,28 +47,28 @@ module.exports = {
   },
 
   plugins: [
-      new webpack.EnvironmentPlugin({
-        ...process.env
+      new webpack.DefinePlugin({
+        'process.env': JSON.stringify(process.env)
       }),
-    new ModuleFederationPlugin({
-      name: "openai_copilot",
-      filename: "remoteEntry.js",
-      remotes: {},
-      exposes: {},
-      shared: {
-        ...deps,
-        react: {
-          singleton: true,
-          requiredVersion: deps.react,
+      new ModuleFederationPlugin({
+        name: "openai_copilot",
+        filename: "remoteEntry.js",
+        remotes: {},
+        exposes: {},
+        shared: {
+          ...deps,
+          react: {
+            singleton: true,
+            requiredVersion: deps.react,
+          },
+          "react-dom": {
+            singleton: true,
+            requiredVersion: deps["react-dom"],
+          },
         },
-        "react-dom": {
-          singleton: true,
-          requiredVersion: deps["react-dom"],
-        },
-      },
-    }),
-    new HtmlWebPackPlugin({
-      template: "./src/index.html",
-    }),
+      }),
+      new HtmlWebPackPlugin({
+        template: "./src/index.html",
+      }),
   ],
 };
